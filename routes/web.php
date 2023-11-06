@@ -33,34 +33,42 @@ Route::get('/', function () {
 });
 
 
-function caculateTimes($startDate,  $endDate,  $configs)
-{
-    $datesInRange = [];
-    $startDate = Carbon::parse($startDate);
-    $endDate = Carbon::parse($endDate);
+function caculateTimes(
+    $startDate,
+    $endDate,
+    $configs
+) {
+    try {
+        $datesInRange = [];
+        $startDate = Carbon::parse($startDate);
+        $endDate = Carbon::parse($endDate);
 
 
-    while ($startDate->lte($endDate)) {
-        $datesInRange[] = $startDate->toDateString();
-        $startDate->addDay();
-    }
-    $totalHours = 0;
-    foreach ($datesInRange as $key => $date) {
-        foreach ($configs as $key2 => $config) {
-            $configTimeStart = Carbon::parse($config['start_time']);
-            $configTimeEnd = Carbon::parse($config['end_time']);
-            if ($key == 0) {
-                if ($configTimeStart->format('H:i:s') >= $startDate->format('H:i:s')) {
-                    $totalHours += $configTimeEnd->diffInHours($configTimeStart);
+        while ($startDate->lte($endDate)) {
+            $datesInRange[] = $startDate->toDateString();
+            $startDate->addDay();
+        }
+        $totalMinutes = 0;
+        foreach ($datesInRange as $key => $date) {
+            foreach ($configs as $key2 => $config) {
+                $configTimeStart = Carbon::parse($config['start_time']);
+                $configTimeEnd = Carbon::parse($config['end_time']);
+                if ($key == 0) {
+                    if ($configTimeStart->format('H:i:s') >= $startDate->format('H:i:s')) {
+                        $totalMinutes += $configTimeEnd->diffInMinutes($configTimeStart);
+                    }
+                } elseif ($key == count($datesInRange)) {
+                    if ($configTimeEnd->format('H:i:s') <= $endDate->format('H:i:s')) {
+                        $totalMinutes += $configTimeEnd->diffInMinutes($configTimeStart);
+                    }
+                } else {
+                    $totalMinutes += $configTimeEnd->diffInMinutes($configTimeStart);
                 }
-            } elseif ($key == count($datesInRange)) {
-                if ($configTimeEnd->format('H:i:s') <= $endDate->format('H:i:s')) {
-                    $totalHours += $configTimeEnd->diffInHours($configTimeStart);
-                }
-            } else {
-                $totalHours += $configTimeEnd->diffInHours($configTimeStart);
             }
         }
+        $totalHours = $totalMinutes / 60;
+        return $totalHours;
+    } catch (\Exception $e) {
+        throw new Exception($e->getMessage());
     }
-    return $totalHours;
 }
