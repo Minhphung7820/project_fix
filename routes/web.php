@@ -21,14 +21,16 @@ Route::get('/', function () {
     // $caOvertimeEnd = new Carbon("21:00:00");
     $configs = [
         [
-            "start_time" => "00:00:00",
+            "start_time" => "17:00:00",
             "end_time" => "21:00:00",
         ]
     ];
     dd(caculateTimes(
         '2023-10-25 17:00:00',
-        '2023-11-04 21:00:00',
-        $configs
+        '2023-10-26 21:00:00',
+        $configs,
+        1,
+        false
     ));
 });
 
@@ -36,7 +38,9 @@ Route::get('/', function () {
 function caculateTimes(
     $startDate,
     $endDate,
-    $configs
+    $configs,
+    $break = 0,
+    $flagSubEveryConfig = true
 ) {
     try {
         $datesInRange = [];
@@ -64,9 +68,16 @@ function caculateTimes(
                 } else {
                     $totalMinutes += $configTimeEnd->diffInMinutes($configTimeStart);
                 }
+
+                if ($flagSubEveryConfig) {
+                    $totalMinutes -= $break * 60;
+                }
             }
         }
-        $totalHours = $totalMinutes / 60;
+        $totalHours = ($totalMinutes / 60);
+        if (!$flagSubEveryConfig) {
+            $totalHours = $totalHours - $break;
+        }
         return $totalHours;
     } catch (\Exception $e) {
         throw new Exception($e->getMessage());
