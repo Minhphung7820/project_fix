@@ -3,11 +3,11 @@
 use Illuminate\Pagination\LengthAwarePaginator;
 
 if (!function_exists('includeAdapter')) {
-  function includeAdapter(&$data, $includeField, $model, $includeId)
+  function includeAdapter(&$data, $includeField, $model, $includeId, $relationships = [])
   {
     $recordWithIdOne =   $data->firstWhere($includeField, $includeId);
     if (!$recordWithIdOne) {
-      $inlcudeData = $model::where($includeField, $includeId)->first();
+      $inlcudeData = $model::with($relationships)->where($includeField, $includeId)->first();
       $data->push($inlcudeData);
     }
     return $data;
