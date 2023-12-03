@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\Categrory;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,25 +18,25 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    // $startTime = new Carbon("2023-11-01 17:00:00");
-    // $endTime = new Carbon("2023-11-04 21:00:00");
-    // $caOvertimeStart = new Carbon("17:00:00");
-    // $caOvertimeEnd = new Carbon("21:00:00");
-    $configs = [
-        [
-            "start_time" => "17:00:00",
-            "end_time" => "21:00:00",
-        ]
-    ];
-    dd(caculateTimes(
-        '2023-10-25 17:00:00',
-        '2023-10-26 21:00:00',
-        $configs,
-        1,
-        false
-    ));
+Route::get('/', function (Request $request) {
+    $users = User::query();
+
+    if (isset($request->keyword) && $request->keyword) {
+        $users->where(function ($q) use ($request) {
+            $q->where('name', 'LIKE', "%$request->keyword%");
+            $q->orWhere('email', 'LIKE', "%$request->keyword%");
+        });
+    }
+
+    // dd($users->toSql());
+    $data = $users->get();
+    if (isset($request->include_id) && $request->include_id) {
+        includeAdapter($data, 'id', User::class, $request->include_id);
+    }
+    $response = paginateCustom($data);
+    return $response;
 });
+
 
 
 function caculateTimes(
